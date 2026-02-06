@@ -4,13 +4,15 @@ sets up vertex data for a triangle, and enters a main loop to handle input and r
 */
 
 /* Compilation on Linux:
-g++ main.cpp -o prog ./src/glad.c -I./include -lSDL2 -ldl
+g++ ./src/main.cpp -o ./build/prog ./src/glad.c -I./include -lSDL2 -ldl
 */
 
 #include <SDL2/SDL.h>
 #include <glad/glad.h>
 #include <iostream>
 #include <vector>
+#include <fstream>
+#include <string>
 
 // Globals
 int gScreenHeight = 480;
@@ -23,24 +25,25 @@ GLuint gVertexArrayObject = 0; // VAO
 GLuint gVertexBufferObject = 0; // VBO
 GLuint gGraphicsPipelineShaderProgram = 0; // shader program object
 
-/* 硬编码shader */
-const std::string gVertexShaderSource = 
-    "#version 410 core\n"
-    "in vec4 position;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = vec4(position.x, position.y, position.z, position.w);\n"
-    "}\n";
 
-const std::string gFragmentShaderSource = 
-    "#version 410 core\n"
-    "out vec4 fragColor;\n"
-    "void main()\n"
-    "{\n"
-    "   fragColor = vec4(1.0f, 0.5f, 0.0f, 1.0f);\n"
-    "}\n";
+std::string LoadShaderAsString(const std::string& filename) {
+    // standard C++ way to read a text file into a string
+    std::string result = "";
 
+    std::string line = "";
+    std::ifstream myFile(filename.c_str());
 
+    if(myFile.is_open()) {
+        while(std::getline(myFile, line)) {
+            result += line + '\n';
+        }
+
+        myFile.close();
+    }
+
+    return result;
+
+}   
 
 
 void InitializeProgram() {
@@ -161,7 +164,12 @@ GLuint CreateShaderProgram(const std::string& vertexshadersource, const std::str
 }
 
 void CreateGraphicsPipeline() {
-    gGraphicsPipelineShaderProgram = CreateShaderProgram(gVertexShaderSource, gFragmentShaderSource);
+
+    std::string vertexShaderSource = LoadShaderAsString("/home/summer/openglLearning/shaders/vertex_shader.glsl");
+    std::string fragmentShaderSource = LoadShaderAsString("/home/summer/openglLearning/shaders/fragment_shader.glsl");
+
+
+    gGraphicsPipelineShaderProgram = CreateShaderProgram(vertexShaderSource, fragmentShaderSource);
 }
 
 
