@@ -21,8 +21,9 @@ SDL_Window* gGraphicsApplicationWindow = nullptr;
 SDL_GLContext gOpenglContext = nullptr;
 bool gQuit = false; // if true, quit the main loop
 
-GLuint gVertexArrayObject = 0; // VAO
-GLuint gVertexBufferObject = 0; // VBO
+GLuint gVertexArrayObject = 0; // VAO for vertex attributes
+GLuint gVertexBufferObject = 0; // VBO for vertex positions
+GLuint gVertexBufferObject2 = 0; // VBO for vertex colors
 GLuint gGraphicsPipelineShaderProgram = 0; // shader program object
 
 
@@ -100,26 +101,46 @@ void VertexSpecification() {
         0.0f,  0.8f, 0.0f   // vertex 3
     };
 
+    const std::vector<GLfloat> vertexColors{
+        // r,    g,    b
+         1.0f, 0.0f, 0.0f,  // vertex 1 color: red
+         0.0f, 1.0f, 0.0f,  // vertex 2 color: green
+         0.0f, 0.0f, 1.0f   // vertex 3 color: blue
+        
+    };
+
     /* -------------------- Start setting things on the GPU ----------------------------------------------------------*/
-    // create vao
+
+    // create vao 
     glGenVertexArrays(1, &gVertexArrayObject);
     glBindVertexArray(gVertexArrayObject);
 
-    // create vbo
+    // create vbo for vertex positions, bind it to GL_ARRAY_BUFFER, and upload data
     glGenBuffers(1, &gVertexBufferObject);
     glBindBuffer(GL_ARRAY_BUFFER, gVertexBufferObject);
     glBufferData(GL_ARRAY_BUFFER,       vertexPosition.size() * sizeof(GLfloat), 
                  vertexPosition.data(), GL_STATIC_DRAW);
 
-    // Enable vertex attribute 0
+    // Enable vertex attribute and Describe vertex attribute layout
     glEnableVertexAttribArray(0);
-
-    // Describe vertex attribute 0 layout
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
+    // create vbo for vertex colors, bind it to GL_ARRAY_BUFFER, and upload data
+    glGenBuffers(1, &gVertexBufferObject2);
+    glBindBuffer(GL_ARRAY_BUFFER, gVertexBufferObject2);
+    glBufferData(GL_ARRAY_BUFFER, vertexColors.size() * sizeof(GLfloat),
+                vertexColors.data(), GL_STATIC_DRAW);
+
+    // Enable vertex attribute and Describe vertex attribute layout
+    glEnableVertexAttribArray(1);    
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
     // Unbind vao and vbo to prevent accidental modification 
-    glBindVertexArray(0);
+    glBindVertexArray(0); // 解绑vao
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+
 }
 
 GLuint CompileShader(GLuint shaderType, const std::string& shadersource) {
