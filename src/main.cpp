@@ -23,7 +23,6 @@ bool gQuit = false; // if true, quit the main loop
 
 GLuint gVertexArrayObject = 0; // VAO for vertex attributes
 GLuint gVertexBufferObject = 0; // VBO for vertex positions
-GLuint gVertexBufferObject2 = 0; // VBO for vertex colors
 GLuint gGraphicsPipelineShaderProgram = 0; // shader program object
 
 
@@ -94,46 +93,51 @@ void InitializeProgram() {
 
 void VertexSpecification() {
     // lives on cpu
-    const std::vector<GLfloat> vertexPosition{
-        // x,    y,    z
-        -0.8f, -0.8f, 0.0f,  // vertex 1
-        0.8f, -0.8f, 0.0f,  // vertex 2
-        0.0f,  0.8f, 0.0f   // vertex 3
+    const std::vector<GLfloat> vertexData{
+
+        /* First triangle */
+        -0.5f, -0.5f, 0.0f,
+        1.0f, 0.0f, 0.0f, 
+        0.5f, -0.5f, 0.0f,  
+        0.0f, 1.0f, 0.0f,  
+        -0.5f,  0.5f, 0.0f,   
+        0.0f, 0.0f, 1.0f,   
+
+        /* Second triangle */
+        -0.5f,  0.5f, 0.0f,   
+        0.0f, 0.0f, 1.0f,   
+        0.5f, -0.5f, 0.0f,  
+        0.0f, 1.0f, 0.0f,  
+        0.5f, 0.5f, 0.0f,  
+        1.0f, 0.0f, 0.0f  
+
     };
 
-    const std::vector<GLfloat> vertexColors{
-        // r,    g,    b
-         1.0f, 0.0f, 0.0f,  // vertex 1 color: red
-         0.0f, 1.0f, 0.0f,  // vertex 2 color: green
-         0.0f, 0.0f, 1.0f   // vertex 3 color: blue
-        
-    };
 
     /* -------------------- Start setting things on the GPU ----------------------------------------------------------*/
 
     // create vao 
     glGenVertexArrays(1, &gVertexArrayObject);
+
     glBindVertexArray(gVertexArrayObject);
 
-    // create vbo for vertex positions, bind it to GL_ARRAY_BUFFER, and upload data
+    // create vbo for vertexData, bind it to GL_ARRAY_BUFFER, and upload data
     glGenBuffers(1, &gVertexBufferObject);
+
     glBindBuffer(GL_ARRAY_BUFFER, gVertexBufferObject);
-    glBufferData(GL_ARRAY_BUFFER,       vertexPosition.size() * sizeof(GLfloat), 
-                 vertexPosition.data(), GL_STATIC_DRAW);
+
+    glBufferData(GL_ARRAY_BUFFER,       vertexData.size() * sizeof(GLfloat), 
+                 vertexData.data(), GL_STATIC_DRAW);
 
     // Enable vertex attribute and Describe vertex attribute layout
+    // for position attribute
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT) * 6, (GLvoid*)0);
 
-    // create vbo for vertex colors, bind it to GL_ARRAY_BUFFER, and upload data
-    glGenBuffers(1, &gVertexBufferObject2);
-    glBindBuffer(GL_ARRAY_BUFFER, gVertexBufferObject2);
-    glBufferData(GL_ARRAY_BUFFER, vertexColors.size() * sizeof(GLfloat),
-                vertexColors.data(), GL_STATIC_DRAW);
+    // for color attribute
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT) * 6, (GLvoid*)(sizeof(GL_FLOAT) * 3));
 
-    // Enable vertex attribute and Describe vertex attribute layout
-    glEnableVertexAttribArray(1);    
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
     // Unbind vao and vbo to prevent accidental modification 
     glBindVertexArray(0); // 解绑vao
@@ -233,7 +237,7 @@ void Draw() {
     glBindBuffer(GL_ARRAY_BUFFER, gVertexBufferObject);
 
     // - glDrawArrays / glDrawElements
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
     
     glUseProgram(0); // unbind shader program
 }
