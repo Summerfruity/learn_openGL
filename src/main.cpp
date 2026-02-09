@@ -23,6 +23,7 @@ bool gQuit = false; // if true, quit the main loop
 
 GLuint gVertexArrayObject = 0; // VAO for vertex attributes
 GLuint gVertexBufferObject = 0; // VBO for vertex positions
+GLuint gIndexBufferObject = 0;
 GLuint gGraphicsPipelineShaderProgram = 0; // shader program object
 
 
@@ -95,19 +96,16 @@ void VertexSpecification() {
     // lives on cpu
     const std::vector<GLfloat> vertexData{
 
-        /* First triangle */
+        /* 0 - Vertex */
         -0.5f, -0.5f, 0.0f,
         1.0f, 0.0f, 0.0f, 
+        /* 1 - Vertex */
         0.5f, -0.5f, 0.0f,  
-        0.0f, 1.0f, 0.0f,  
+        0.0f, 1.0f, 0.0f,
+        /* 2 - Vertex */  
         -0.5f,  0.5f, 0.0f,   
         0.0f, 0.0f, 1.0f,   
-
-        /* Second triangle */
-        -0.5f,  0.5f, 0.0f,   
-        0.0f, 0.0f, 1.0f,   
-        0.5f, -0.5f, 0.0f,  
-        0.0f, 1.0f, 0.0f,  
+        /* 3 - Vertex */  
         0.5f, 0.5f, 0.0f,  
         1.0f, 0.0f, 0.0f  
 
@@ -137,6 +135,17 @@ void VertexSpecification() {
     // for color attribute
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT) * 6, (GLvoid*)(sizeof(GL_FLOAT) * 3));
+
+    // 按索引绘制的顶点索引数据（每三个索引构成一个三角形）
+    const std::vector<GLuint> indexBufferData {2, 0, 1, 3, 2, 1}; 
+
+    // create index buffer object (IBO) for indexed drawing 
+    glGenBuffers(1, &gIndexBufferObject);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gIndexBufferObject);
+
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexBufferData.size() * sizeof(GLuint), 
+                 indexBufferData.data(), GL_STATIC_DRAW);
 
 
     // Unbind vao and vbo to prevent accidental modification 
@@ -231,13 +240,15 @@ void PreDraw() {
 
 void Draw() {
 
-    // 通常会在这里放绘制代码，例如：
     // - 绑定 VAO/VBO
     glBindVertexArray(gVertexArrayObject);
     glBindBuffer(GL_ARRAY_BUFFER, gVertexBufferObject);
 
-    // - glDrawArrays / glDrawElements
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    // Render data
+    glDrawElements(GL_TRIANGLES, 
+                   6, // 这里是索引的数量，不是顶点数量。我们有 6 个索引（2 个三角形），所以传 6。  
+                   GL_UNSIGNED_INT, 
+                   0); // 索引绘制：从当前绑定的 GL_ELEMENT_ARRAY_BUFFER 里读取索引数据，每三个索引构成一个三角形，绘制两组三角形（共六个顶点）
     
     glUseProgram(0); // unbind shader program
 }
