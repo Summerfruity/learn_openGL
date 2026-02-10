@@ -26,6 +26,25 @@ GLuint gVertexBufferObject = 0; // VBO for vertex positions
 GLuint gIndexBufferObject = 0;
 GLuint gGraphicsPipelineShaderProgram = 0; // shader program object
 
+// vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv  Error Handling Routines  vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+static void GLClearAllErrors() {
+    while(glGetError() != GL_NO_ERROR) {
+        // 循环体是空的，因为我们只关心把错误取出来丢掉
+    }
+}
+
+// Returns true if we have an error
+static bool GLCheckErrorStatus(const char* function, int line) {
+    while(GLenum error = glGetError()) {
+        std::cout << "OpenGL Error: " << error 
+                  << "\tLine: " << line
+                  << "\tfunction: " << function << std::endl;
+        return true;
+    }
+    return false;
+}
+#define GLCheck(x) GLClearAllErrors(); x; GLCheckErrorStatus(#x, __LINE__);
+// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  Error Handling Routines  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 std::string LoadShaderAsString(const std::string& filename) {
     // standard C++ way to read a text file into a string
