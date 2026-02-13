@@ -4,11 +4,15 @@ sets up vertex data for a triangle, and enters a main loop to handle input and r
 */
 
 /* Compilation on Linux:
-g++ ./src/main.cpp -o ./build/prog ./src/glad.c -I./include -lSDL2 -ldl
+g++ src/main.cpp src/glad.c -o build/prog -I./include -I"../common/third party/glm-master" -g -lSDL2 -ldl
 */
 
 #include <SDL2/SDL.h>
 #include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
+
 #include <iostream>
 #include <vector>
 #include <fstream>
@@ -25,6 +29,8 @@ GLuint gVertexArrayObject = 0; // VAO for vertex attributes
 GLuint gVertexBufferObject = 0; // VBO for vertex positions
 GLuint gIndexBufferObject = 0;
 GLuint gGraphicsPipelineShaderProgram = 0; // shader program object
+
+float g_uOffset = 0.0f;
 
 // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv  Error Handling Routines  vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 static void GLClearAllErrors() {
@@ -148,12 +154,12 @@ void VertexSpecification() {
 
     // Enable vertex attribute and Describe vertex attribute layout
     // for position attribute
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT) * 6, (GLvoid*)0);
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 6, (GLvoid*)0);
 
     // for color attribute
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT) * 6, (GLvoid*)(sizeof(GL_FLOAT) * 3));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT) * 6, (GLvoid*)(sizeof(GLfloat) * 3));
 
     // 按索引绘制的顶点索引数据（每三个索引构成一个三角形）
     const std::vector<GLuint> indexBufferData {2, 0, 1, 3, 2, 1}; 
@@ -170,7 +176,7 @@ void VertexSpecification() {
     // Unbind vao and vbo to prevent accidental modification 
     glBindVertexArray(0); // 解绑vao
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(3);
     glDisableVertexAttribArray(1);
 
 }
@@ -240,6 +246,19 @@ void Input() {
         }
         
     }
+
+    // Retrieve keyboard state
+    const Uint8 *state = SDL_GetKeyboardState(NULL);
+    if(state[SDL_SCANCODE_UP]) {
+        g_uOffset += 0.01f;
+        std::cout << "g_uOffset: " << g_uOffset << std::endl;
+    }
+    if(state[SDL_SCANCODE_DOWN]) {
+        g_uOffset -= 0.01f;
+        std::cout << "g_uOffset: " << g_uOffset << std::endl;
+    }
+
+
 }
 
 void PreDraw() {
@@ -253,7 +272,17 @@ void PreDraw() {
     glClearColor(1.f, 1.f, 0.f, 1.f); // 黄色背景
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT); // 清除深度缓冲和颜色缓冲
 
+    // - 绑定 shader program
     glUseProgram(gGraphicsPipelineShaderProgram);
+    
+    // 设置 uniform 变量
+    GLint location = glGetUniformLocation(gGraphicsPipelineShaderProgram, "u_Offset");
+    if(location >= 0) {
+        glUniform1f(location, g_uOffset);
+    }
+    else {
+        std::cout << "Could not find u_Offset\n";
+    }
 
 }
 

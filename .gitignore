@@ -1,1 +1,11 @@
 build/
+.vscode
+
+# Third-party libraries
+third_party/
+3rdparty/
+external/
+vendor/
+
+# Local shared third-party path (space in folder name)
+common/third party/

@@ -1,8 +1,11 @@
 # 编译器
 CXX = g++
 
+# GLM 头文件目录（路径中包含空格，需加引号）
+GLM_DIR = ../common/third party/glm-master
+
 # 编译选项 (包含头文件目录)
-CXXFLAGS = -I./include -g
+CXXFLAGS = -I./include -I"$(GLM_DIR)" -g
 
 # 链接库 (SDL2, dl等)
 LDFLAGS = -lSDL2 -ldl
