@@ -275,8 +275,8 @@ void PreDraw() {
     // - 绑定 shader program
     glUseProgram(gGraphicsPipelineShaderProgram);
 
-    // 构造一个平移矩阵，表示把物体沿 y 轴平移 1 个单位
-    glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, g_uOffset, 0.0f));
+    // 构造一个平移矩阵，表示把物体沿 z 轴平移 g_uOffset 个单位（初始值为 0，按键盘上下键会改变它）
+    glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, g_uOffset));
 
     // Retrieve the location of the uniform variable "u_ModelMatrix" in the shader program, and set it to the translation matrix
     GLint u_ModelMatrixLocation = glGetUniformLocation(gGraphicsPipelineShaderProgram, "u_ModelMatrix");
@@ -292,6 +292,29 @@ void PreDraw() {
         std::cout << "Could not find u_ModelMatrixLocation\n";
         exit(EXIT_FAILURE);
     }
+
+    // 构造一个透视投影矩阵
+    glm::mat4 perspective = glm::perspective(glm::radians(45.0f), 
+                                             (float)gScreenWidth / (float)gScreenHeight,
+                                             0.1f,
+                                             10.0f
+                                            );
+
+    // Retrieve the location of the uniform variable "u_Perspective" 
+    GLint u_ProjectionLocation = glGetUniformLocation(gGraphicsPipelineShaderProgram, "u_Projection");
+
+    if(u_ProjectionLocation >= 0) { 
+        glUniformMatrix4fv(u_ProjectionLocation, // location of the uniform variable
+                           1, // count: how many matrices we are sending (1 in this case)
+                           GL_FALSE, // whether to transpose the matrix (OpenGL expects column-major order, and glm::mat4 is already in that format, so we pass GL_FALSE)
+                           &perspective[0][0] // glm::mat4 在内存中是列主序存储的，所以传地址时直接传第一列的地址即可
+                         );
+    }
+    else {
+        std::cout << "Could not find u_ProjectionLocation\n";
+        exit(EXIT_FAILURE);
+    }
+
 
 }
 
