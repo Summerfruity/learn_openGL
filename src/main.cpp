@@ -30,7 +30,8 @@ GLuint gVertexBufferObject = 0; // VBO for vertex positions
 GLuint gIndexBufferObject = 0;
 GLuint gGraphicsPipelineShaderProgram = 0; // shader program object
 
-float g_uOffset = 0.0f; 
+float gOffset = 0.0f; 
+float gRotate = 0.0f;
 
 // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv  Error Handling Routines  vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 static void GLClearAllErrors() {
@@ -250,12 +251,20 @@ void Input() {
     // Retrieve keyboard state
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     if(state[SDL_SCANCODE_UP]) {
-        g_uOffset += 0.01f;
-        std::cout << "g_uOffset: " << g_uOffset << std::endl;
+        gOffset += 0.01f;
+        std::cout << "g_uOffset: " << gOffset << std::endl;
     }
     if(state[SDL_SCANCODE_DOWN]) {
-        g_uOffset -= 0.01f;
-        std::cout << "g_uOffset: " << g_uOffset << std::endl;
+        gOffset -= 0.01f;
+        std::cout << "g_uOffset: " << gOffset << std::endl;
+    }
+    if(state[SDL_SCANCODE_LEFT]) {
+        gRotate -= 1.0f;
+        std::cout << "g_uRotate: " << gRotate << std::endl;
+    }
+    if(state[SDL_SCANCODE_RIGHT]) {
+        gRotate += 1.0f;
+        std::cout << "g_uRotate: " << gRotate << std::endl;
     }
 
 
@@ -275,8 +284,11 @@ void PreDraw() {
     // - 绑定 shader program
     glUseProgram(gGraphicsPipelineShaderProgram);
 
-    // 构造一个平移矩阵，表示把物体沿 z 轴平移 g_uOffset 个单位（初始值为 0，按键盘上下键会改变它）
-    glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, g_uOffset));
+    // 构造一个模型变换矩阵：先平移，再旋转
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, gOffset));
+
+    // 围绕 y 轴旋转 45 度
+    model           = glm::rotate(model, glm::radians(gRotate), glm::vec3(0.0f, 1.0f, 0.0f));
 
     // Retrieve the location of the uniform variable "u_ModelMatrix" in the shader program, and set it to the translation matrix
     GLint u_ModelMatrixLocation = glGetUniformLocation(gGraphicsPipelineShaderProgram, "u_ModelMatrix");
@@ -285,7 +297,7 @@ void PreDraw() {
         glUniformMatrix4fv(u_ModelMatrixLocation, // location of the uniform variable
                            1, // count: how many matrices we are sending (1 in this case)
                            GL_FALSE, // whether to transpose the matrix (OpenGL expects column-major order, and glm::mat4 is already in that format, so we pass GL_FALSE)
-                           &translate[0][0] // glm::mat4 在内存中是列主序存储的，所以传地址时直接传第一列的地址即可
+                           &model[0][0] // glm::mat4 在内存中是列主序存储的，所以传地址时直接传第一列的地址即可
                          );
     }
     else {
@@ -355,7 +367,6 @@ void MainLoop() {
 
 void CleanUp() {
     // 按“创建的逆序”回收资源：先销毁窗口，再关闭 SDL。
-    //（如果你后续显式创建/绑定了更多 GL 资源，也应在退出前释放。）
     SDL_DestroyWindow(gGraphicsApplicationWindow);
     SDL_Quit();
 }
