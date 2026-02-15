@@ -4,9 +4,9 @@ in vec3 vColor;
 
 out vec4 fragColor;
 
-uniform float u_Offset; // uniform variable
+uniform mat4 u_ModelMatrix;
 
 void main()
 {
-   fragColor = vec4(vColor.r - u_Offset, vColor.g, vColor.b, 1.0);
+   fragColor = vec4(vColor.r, vColor.g, vColor.b, 1.0);
 }

@@ -3,12 +3,14 @@
 layout(location = 3) in vec3 position;
 layout(location = 1) in vec3 color;
 
-uniform float u_Offset; // uniform variable
+uniform mat4 u_ModelMatrix;
 
 out vec3 vColor;
 
 void main()
 {
-   gl_Position = vec4(position.x,position.y + u_Offset, position.z, 1.0);
+   vec4 newPosition = u_ModelMatrix * vec4(position, 1.0f);
+
+   gl_Position = vec4(newPosition.x,newPosition.y, newPosition.z, 1.0f);
    vColor = color;
 }

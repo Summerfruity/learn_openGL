@@ -12,7 +12,7 @@ g++ src/main.cpp src/glad.c -o build/prog -I./include -I"../common/third party/g
 #include <glm/glm.hpp>
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
-
+#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <vector>
 #include <fstream>
@@ -30,7 +30,7 @@ GLuint gVertexBufferObject = 0; // VBO for vertex positions
 GLuint gIndexBufferObject = 0;
 GLuint gGraphicsPipelineShaderProgram = 0; // shader program object
 
-float g_uOffset = 0.0f;
+float g_uOffset = 0.0f; 
 
 // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv  Error Handling Routines  vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 static void GLClearAllErrors() {
@@ -274,14 +274,23 @@ void PreDraw() {
 
     // - 绑定 shader program
     glUseProgram(gGraphicsPipelineShaderProgram);
-    
-    // 设置 uniform 变量
-    GLint location = glGetUniformLocation(gGraphicsPipelineShaderProgram, "u_Offset");
-    if(location >= 0) {
-        glUniform1f(location, g_uOffset);
+
+    // 构造一个平移矩阵，表示把物体沿 y 轴平移 1 个单位
+    glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, g_uOffset, 0.0f));
+
+    // Retrieve the location of the uniform variable "u_ModelMatrix" in the shader program, and set it to the translation matrix
+    GLint u_ModelMatrixLocation = glGetUniformLocation(gGraphicsPipelineShaderProgram, "u_ModelMatrix");
+
+    if(u_ModelMatrixLocation >= 0) { 
+        glUniformMatrix4fv(u_ModelMatrixLocation, // location of the uniform variable
+                           1, // count: how many matrices we are sending (1 in this case)
+                           GL_FALSE, // whether to transpose the matrix (OpenGL expects column-major order, and glm::mat4 is already in that format, so we pass GL_FALSE)
+                           &translate[0][0] // glm::mat4 在内存中是列主序存储的，所以传地址时直接传第一列的地址即可
+                         );
     }
     else {
-        std::cout << "Could not find u_Offset\n";
+        std::cout << "Could not find u_ModelMatrixLocation\n";
+        exit(EXIT_FAILURE);
     }
 
 }
